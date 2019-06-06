@@ -18,6 +18,13 @@ class ScrollViewController: UIViewController, UIScrollViewDelegate {
             scrollView.addSubview(imageView)
         }
     }
+    @IBOutlet weak var height: NSLayoutConstraint!
+    @IBOutlet weak var width: NSLayoutConstraint!
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        height.constant = scrollView.contentSize.height
+        width.constant = scrollView.contentSize.width
+    }
     
     @IBOutlet weak var spinner: UIActivityIndicatorView!
     
@@ -42,6 +49,8 @@ class ScrollViewController: UIViewController, UIScrollViewDelegate {
             imageView.image = newValue
             imageView.sizeToFit()
             scrollView?.contentSize = imageView.frame.size
+            height?.constant = scrollView.contentSize.height
+            width?.constant = scrollView.contentSize.width
             spinner?.stopAnimating()
         }
     }

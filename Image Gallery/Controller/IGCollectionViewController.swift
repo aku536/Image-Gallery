@@ -22,7 +22,16 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
             igCollectionView.addGestureRecognizer(pinch)
         }
     }
-    var imageGallery = [Image]()
+    
+    // contains array of images
+    //var imageGallery = [Image]()
+    var imageGallery = ImageGallery(name: "one") {
+        didSet {
+            if !(imageGallery === oldValue) {
+                igCollectionView?.reloadData()
+            }
+        }
+    }
     
     var flowLayout: UICollectionViewFlowLayout? {
         return collectionView?.collectionViewLayout as? UICollectionViewFlowLayout
@@ -33,13 +42,14 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
     // number of items equals number of images in gallery
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return imageGallery.count
+        return imageGallery.image.count
     }
     
     // sets the size depending on aspect ratio
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let height: CGFloat
-        let imageAspectRatio = imageGallery[indexPath.item].aspectRatio
+//        let imageAspectRatio = imageGallery[indexPath.item].aspectRatio
+        let imageAspectRatio = imageGallery.image[indexPath.item].aspectRatio
         if let width = flowLayout?.itemSize.width {
             height = width / CGFloat(imageAspectRatio)
             return CGSize(width: width, height: height)
@@ -53,7 +63,8 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ImageCell", for: indexPath)
         
         if let imageViewCell = cell as? IGCollectionViewCell {
-            imageViewCell.imageURL = imageGallery[indexPath.item].url
+            //imageViewCell.imageURL = imageGallery[indexPath.item].url
+            imageViewCell.imageURL = imageGallery.image[indexPath.item].url
         }
         return cell
     }
@@ -107,8 +118,8 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
             if let sourceIndexPath = item.sourceIndexPath {
                 // local dropping
                 collectionView.performBatchUpdates({
-                    let tempURL = imageGallery.remove(at: sourceIndexPath.item)
-                    imageGallery.insert(tempURL, at: destinationIndexPath.item)
+                    let tempURL = imageGallery.image.remove(at: sourceIndexPath.item)
+                    imageGallery.image.insert(tempURL, at: destinationIndexPath.item)
                     collectionView.deleteItems(at: [sourceIndexPath])
                     collectionView.insertItems(at: [destinationIndexPath])
                 })
@@ -133,7 +144,7 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
                         if outsideURL != nil, aspectRatio != nil {
                             placeholderContext.commitInsertion(dataSourceUpdates: { insertionIndexPath in
                                 let newImage = Image(url: outsideURL!, aspectRatio: aspectRatio!)
-                                self.imageGallery.insert(newImage, at: insertionIndexPath.item)
+                                self.imageGallery.image.insert(newImage, at: insertionIndexPath.item)
                             })
                         } else {
                             placeholderContext.deletePlaceholder()
@@ -159,9 +170,14 @@ class IGCollectionViewController: UICollectionViewController, UICollectionViewDe
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "ScrollViewSegue" {
             if let cell = sender as? IGCollectionViewCell, let indexPath = igCollectionView.indexPath(for: cell), let svc = segue.destination as? ScrollViewController {
-                    svc.imageURL = imageGallery[indexPath.item].url
+                    svc.imageURL = imageGallery.image[indexPath.item].url
             }
         }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
     }
     
 }
